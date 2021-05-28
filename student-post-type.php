@@ -4,7 +4,10 @@
  * Description: Adds a custom post type "student".
  * Author:      Aleks Ganev
  * Version:     1.0
+ * @package Student Post Type
  */
+
+include plugin_dir_path(__FILE__) . './student-widget.php';
 
 function ag_students_post_type() {
     $labels = array(
@@ -215,14 +218,18 @@ function ag_save_meta_data( $post_id ) {
         );
     }
 
-    if ( array_key_exists( 'ag_status_field', $_POST ) ) {
+    if ( array_key_exists( 'ag_status_field', $_POST ) && $_POST['ag_status_field'] == 1 ) {
         update_post_meta(
             $post_id,
             '_ag_status_meta',
-            $_POST['ag_status_field']
+            1
         );
     } else {
-        delete_post_meta( $post_id, "_ag_status_meta" );
+        update_post_meta(
+            $post_id,
+            '_ag_status_meta',
+            0
+        );
     }
 }
 
@@ -247,8 +254,12 @@ add_action("wp_ajax_ag_update_active_status", "ag_update_active_status");
 
 function ag_update_active_status() {
     $post_id = $_POST['post_id'];
-    if ( get_post_meta( $post_id, '_ag_status_meta', true ) ) {
-        delete_post_meta( $post_id, "_ag_status_meta" );
+    if ( get_post_meta( $post_id, '_ag_status_meta', true ) == 1 ) {
+        update_post_meta(
+            $post_id,
+            '_ag_status_meta',
+            0
+        );
     } else {
         update_post_meta(
             $post_id,
@@ -270,15 +281,14 @@ function ag_custom_post_type_student_enqueuer() {
 }
 
 //Shortcode
-
 function ag_student_shortcode( $atts ) {
 
     if ( $atts == "" ) {
         return;
     }
-    $post_id = $atts['id'];
+    $student_id = $atts['id'];
     $args = array(
-        'p'           => $post_id,
+        'p'           => $student_id,
         'post_type'   => 'student',
         'meta_query'  => array(
             'key'     => '_ag_status_meta',
@@ -297,14 +307,18 @@ function ag_student_shortcode( $atts ) {
             $info .= '<br>';
             $info .= 'Name: ' . get_the_title(); 
             $info .= '<br>';
-            $info .= 'Grade: ' . get_post_meta( $post_id, '_ag_grade_meta', true );
+            $info .= 'Grade: ' . get_post_meta( get_the_ID(), '_ag_grade_meta', true );
             $info .= '<br>';
             $info .= '~~~~~~~~~~~~~~~Shortcode~~~~~~~~~~~~~~~';
             $info .= '</div>';
+            wp_reset_postdata();
             return $info;
         endwhile;
+    else:
+        wp_reset_postdata();
+        return '<div style="text-align: center">No Student with id ' . $student_id . ' found!</div>';
     endif;
-    wp_reset_postdata();
 }
 
 add_shortcode( 'student', 'ag_student_shortcode' );
+
