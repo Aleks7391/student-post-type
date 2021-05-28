@@ -8,6 +8,8 @@
  */
 
 include plugin_dir_path(__FILE__) . './student-widget.php';
+include plugin_dir_path(__FILE__) . './student-sidebar.php';
+
 
 function ag_students_post_type() {
     $labels = array(
