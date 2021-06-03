@@ -4,7 +4,9 @@
 function ag_rest_all_students_callback( $data ) {
 
 	$posts = get_posts( array(
-		'post_type' => 'student'
+		'posts_per_page' => 50,
+		'post_type' => 'student',
+		'paged' => $data['page'],
 	));
 
 	if ( empty( $posts ) ) {
@@ -14,11 +16,11 @@ function ag_rest_all_students_callback( $data ) {
 }
 
 add_action( 'rest_api_init', function () {
-	register_rest_route( 'students', '/all', array(
+	register_rest_route( 'students', '/all/page=(?P<page>\d+)', array(
 		'methods' => 'GET',
 		'callback' => 'ag_rest_all_students_callback',
 		'permission_callback' => function () {
-			__return_true();
+			return true;
 		},
 	));
 });
